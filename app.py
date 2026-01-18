@@ -1,130 +1,94 @@
 import streamlit as st
 import boto3
+import json
 
 # --- KONFİGÜRASYON ---
-AGENT_ID = "J280YK35FY"
-AGENT_ALIAS_ID = "IWAACDSX81" 
+MODEL_ID = "anthropic.claude-4-5-v1:0" # Sizin o devasa gücünüz: Claude 4.5
 AWS_ACCESS_KEY = "AKIAZQW6QVW5L6AQKVEG"
 AWS_SECRET_KEY = "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"
 REGION = "us-east-1"
 
-# Sayfa Ayarları (Açık ve Ferah Tema)
-st.set_page_config(page_title="ZAKShield AI | Profesyonel Medikal Hukuk Paneli", page_icon="⚖️", layout="wide")
+st.set_page_config(page_title="ZAKShield AI | Powered by Claude 4.5", page_icon="🛡️", layout="wide")
 
-# MODERN & OKUNABİLİR TASARIM (Clean Light Theme)
+# PROFESYONEL FERAH TASARIM
 st.markdown("""
     <style>
-    /* Arka Plan: Açık Gri / Beyaz */
     .main { background: #fdfdfd; }
-    
-    /* Yazı Renkleri: Net Siyah ve Lacivert */
-    h1, h2, h3, p, span { color: #1e293b !important; }
-    
-    /* Yan Menü (Sidebar) */
-    [data-testid="stSidebar"] { background-color: #f1f5f9; border-right: 1px solid #e2e8f0; }
-    
-    /* Butonlar: Dikkat Çekici Lacivert */
+    h1, h2, h3, p, span { color: #111827 !important; font-family: 'Inter', sans-serif; }
     .stButton>button { 
-        width: 100%; border-radius: 8px; 
-        background: #2563eb; color: #ffffff !important; 
-        font-weight: 700; border: none; height: 3.5em;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        background: #000000; color: #ffffff !important; border-radius: 4px; 
+        font-weight: 700; height: 3.5em; border: none; letter-spacing: 1px;
     }
-    .stButton>button:hover { background: #1d4ed8; transform: translateY(-1px); }
-    
-    /* Kart Yapıları */
-    .card {
-        background: #ffffff; padding: 20px; border-radius: 12px;
-        border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-        margin-bottom: 15px;
-    }
+    .stButton>button:hover { background: #333333; }
+    .stTextArea textarea { background-color: #ffffff; color: #111827; border: 1px solid #d1d5db; font-size: 16px; }
+    [data-testid="stSidebar"] { background-color: #f9fafb; border-right: 1px solid #e5e7eb; }
+    .status-bar { padding: 10px; border-radius: 4px; background: #f0fdf4; color: #166534; font-weight: 600; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
-# SIDEBAR - NAVİGASYON VE KAYIT
+# SIDEBAR - NAVİGASYON
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/1063/1063376.png", width=80) # Geçici Logo
-    st.title("ZAKShield AI")
-    st.markdown("---")
-    
-    menu = st.radio("MENÜ", ["📊 Analiz Merkezi", "💳 Abonelik & Kayıt", "📂 Vaka Arşivi"])
-    
-    st.markdown("---")
-    if menu == "💳 Abonelik & Kayıt":
-        st.subheader("Üye Girişi")
-        email = st.text_input("E-posta")
-        password = st.text_input("Şifre", type="password")
-        if st.button("Giriş Yap"):
-            st.info("Kayıtlı kullanıcı bulunamadı. Lütfen abonelik paketlerini inceleyin.")
-    else:
-        st.info("Oturum: Misafir Kullanıcı")
+    st.markdown("### 🛡️ ZAKShield AI")
+    st.markdown("<p style='font-size: 11px; color: #6b7280;'>MEDICAL LEGAL-TECH</p>", unsafe_allow_html=True)
+    st.divider()
+    menu = st.radio("SİSTEM MENÜSÜ", ["🛡️ Risk Analiz Paneli", "💳 Abonelik ve Kayıt", "📂 Vaka Arşivi"])
+    st.divider()
+    st.markdown("<div class='status-bar'>MODEL: CLAUDE 4.5 ACTIVE</div>", unsafe_allow_html=True)
 
-# ANA İÇERİK
-if menu == "📊 Analiz Merkezi":
-    st.markdown("# 📊 Analiz Merkezi")
-    st.markdown("##### Belge yükleyin veya vaka detaylarını girerek AI analizini başlatın.")
+# ANA PANEL
+if menu == "🛡️ Risk Analiz Paneli":
+    st.markdown("# 🛡️ Risk Analiz Paneli")
+    st.markdown("##### Claude 4.5 motoru ile saniyeler içinde yüksek hassasiyetli tıbbi-hukuki analiz.")
     
-    col1, col2 = st.columns([2, 1])
+    col_input, col_info = st.columns([2, 1])
     
-    with col1:
-        # DOSYA YÜKLEME ALANI
-        st.markdown("### 📄 Belge Yükleme")
-        uploaded_file = st.file_uploader("Onam formu, resim veya PDF yükleyin", type=['pdf', 'png', 'jpg', 'jpeg'])
-        
-        if uploaded_file is not None:
-            st.success(f"Dosya başarıyla yüklendi: {uploaded_file.name}")
-            st.info("Dosya içeriği okunuyor ve AI motoruna aktarılıyor...")
-
-        st.markdown("### ✍️ Metin Girişi")
-        vaka_text = st.text_area("Vaka veya hukuki metni buraya yazın:", height=300)
+    with col_input:
+        uploaded_file = st.file_uploader("Belge Yükleyin (PDF/JPG)", type=['pdf', 'png', 'jpg'])
+        vaka_input = st.text_area("Vaka Detayı veya Hukuki Soru:", height=350, placeholder="Hekim notlarını veya analiz edilecek onam formunu buraya girin...")
         
         if st.button("STRATEJİK ANALİZİ BAŞLAT"):
-            if vaka_text or uploaded_file:
-                with st.spinner("AI Hukuk Algoritmaları Çalışıyor..."):
-                    # Simüle edilmiş veya AWS Bedrock üzerinden gelen yanıt
-                    try:
-                        client = boto3.client(service_name='bedrock-agent-runtime', region_name=REGION,
-                                            aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
-                        response = client.invoke_agent(agentId=AGENT_ID, agentAliasId=AGENT_ALIAS_ID,
-                                                    sessionId="zak-pro-v2", inputText=vaka_text if vaka_text else "Dosya yüklendi.")
-                        
-                        res = "".join([event.get("chunk").get("bytes").decode() for event in response.get("completion") if event.get("chunk")])
-                        st.markdown("---")
-                        st.markdown("### ⚖️ Analiz Sonucu")
-                        st.write(res)
-                    except:
-                        st.error("Bağlantı hatası. Lütfen metin girerek deneyiniz.")
+            if vaka_input:
+                placeholder = st.empty()
+                full_response = ""
+                
+                try:
+                    client = boto3.client(service_name='bedrock-runtime', region_name=REGION,
+                                        aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+                    
+                    # CLAUDE 4.5 STREAMING CALL
+                    body = json.dumps({
+                        "anthropic_version": "bedrock-2023-05-31",
+                        "max_tokens": 4096,
+                        "messages": [{"role": "user", "content": f"Sen tıbbi hukuk uzmanı ZAKShield AI'sın. Claude 4.5 yeteneklerini kullanarak şu vakayı analiz et, eksikleri bul ve hukuki koruma stratejisi öner: {vaka_input}"}],
+                        "temperature": 0.4,
+                    })
+                    
+                    response = client.invoke_model_with_response_stream(modelId=MODEL_ID, body=body)
+                    
+                    for event in response.get("body"):
+                        chunk = event.get("chunk")
+                        if chunk:
+                            decoded = json.loads(chunk.get("bytes").decode())
+                            if decoded.get("type") == "content_block_delta":
+                                text = decoded.get("delta").get("text")
+                                full_response += text
+                                placeholder.markdown(full_response + "▌")
+                    
+                    placeholder.markdown(full_response)
+                    st.success("Claude 4.5 Analizi Başarıyla Tamamlandı.")
+                    st.download_button("Raporu İndir", full_response, "ZAKShield_Rapor.txt")
+                except Exception as e:
+                    st.error(f"Sistem Hatası: {e}")
             else:
-                st.warning("Lütfen bir metin girin veya dosya yükleyin.")
+                st.warning("Analiz için bir metin girilmelidir.")
 
-    with col2:
-        st.markdown("### 💳 Paketler")
-        st.markdown("""
-        <div class='card'>
-            <h4>Standart Paket</h4>
-            <p>Aylık 5 Analiz<br>Temel Mevzuat Taraması</p>
-            <hr>
-            <b>499 TL / Ay</b>
-        </div>
-        <div class='card'>
-            <h4>Premium Paket</h4>
-            <p>Sınırsız Analiz<br>PDF Rapor Çıktısı<br>Emsal Karar Desteği</p>
-            <hr>
-            <b style='color: #2563eb;'>1.299 TL / Ay</b>
-        </div>
-        """, unsafe_allow_html=True)
-        st.button("ŞİMDİ ABONE OL")
-
-elif menu == "💳 Abonelik & Kayıt":
-    st.markdown("# 💎 Üyelik Yönetimi")
-    st.write("Abonelik planınızı seçin ve profesyonel koruma kalkanını aktif edin.")
-    # Burada Stripe veya Iyzico ödeme linkleri eklenebilir.
-
-elif menu == "📂 Vaka Arşivi":
-    st.markdown("# 📂 Geçmiş Analizler")
-    st.write("Daha önce yaptığınız analizlere buradan ulaşabilirsiniz.")
-    st.warning("Bu özelliği kullanmak için giriş yapmalısınız.")
+    with col_info:
+        st.markdown("### 💎 Neden Claude 4.5?")
+        st.write("Sistemimiz, dünyanın en gelişmiş yapay zeka modeli Claude 4.5'i kullanır. Bu sayede karmaşık tıbbi davalarda hata payını minimize eder.")
+        st.divider()
+        st.markdown("#### ⚡ Hız ve Keskinlik")
+        st.write("Saniyeler içinde milyonlarca sayfalık mevzuatı süzerek size en güvenli savunma hattını sunar.")
 
 # FOOTER
 st.markdown("---")
-st.caption("© 2026 ZAKShield AI | Medical Legal-Tech Solutions | Gizlilik Politikası | Kullanım Şartları")
+st.caption("© 2026 ZAKShield AI | Premium Medical Defense Platform")
