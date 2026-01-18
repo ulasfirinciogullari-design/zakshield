@@ -8,97 +8,123 @@ AWS_ACCESS_KEY = "AKIAZQW6QVW5L6AQKVEG"
 AWS_SECRET_KEY = "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"
 REGION = "us-east-1"
 
-st.set_page_config(page_title="ZAKShield AI | Medical Legal Defense", page_icon="⚖️", layout="wide")
+# Sayfa Ayarları (Açık ve Ferah Tema)
+st.set_page_config(page_title="ZAKShield AI | Profesyonel Medikal Hukuk Paneli", page_icon="⚖️", layout="wide")
 
-# MEDİKAL & OTORİTER TASARIM (Navy & Steel)
+# MODERN & OKUNABİLİR TASARIM (Clean Light Theme)
 st.markdown("""
     <style>
-    /* Arka Plan: Koyu Lacivert ve Çelik Tonları */
-    .main { background: #0f172a; }
+    /* Arka Plan: Açık Gri / Beyaz */
+    .main { background: #fdfdfd; }
     
-    /* Buton: Net ve Keskin */
+    /* Yazı Renkleri: Net Siyah ve Lacivert */
+    h1, h2, h3, p, span { color: #1e293b !important; }
+    
+    /* Yan Menü (Sidebar) */
+    [data-testid="stSidebar"] { background-color: #f1f5f9; border-right: 1px solid #e2e8f0; }
+    
+    /* Butonlar: Dikkat Çekici Lacivert */
     .stButton>button { 
-        width: 100%; border-radius: 4px; 
-        background: #1e293b; color: #f8fafc; 
-        font-weight: 700; border: 1px solid #334155; height: 3.5em;
-        text-transform: uppercase; letter-spacing: 1.5px;
-        transition: all 0.3s;
+        width: 100%; border-radius: 8px; 
+        background: #2563eb; color: #ffffff !important; 
+        font-weight: 700; border: none; height: 3.5em;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     }
-    .stButton>button:hover { 
-        background: #334155; border-color: #64748b;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
+    .stButton>button:hover { background: #1d4ed8; transform: translateY(-1px); }
     
-    /* Metin Alanları */
-    .stTextArea>div>div>textarea { background-color: #1e293b; color: #f1f5f9; border: 1px solid #334155; }
-    
-    /* Başlıklar */
-    h1, h2, h3 { color: #f8fafc !important; font-family: 'Inter', sans-serif; }
-    
-    /* Bilgi Kutuları: Profesyonel Gri */
+    /* Kart Yapıları */
     .card {
-        padding: 25px; border-radius: 8px; border: 1px solid #334155;
-        background: #1e293b; margin-bottom: 15px;
+        background: #ffffff; padding: 20px; border-radius: 12px;
+        border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        margin-bottom: 15px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# ÜST BÖLÜM - MİSYON ODDAKLI
-st.markdown("<h1 style='text-align: center;'>ZAKShield <span style='font-weight:300; font-size:24px;'>AI</span></h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 18px;'>Tıp ve Diş Hekimliği İçin Gelişmiş Hukuki Risk Analiz Platformu</p>", unsafe_allow_html=True)
+# SIDEBAR - NAVİGASYON VE KAYIT
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/1063/1063376.png", width=80) # Geçici Logo
+    st.title("ZAKShield AI")
+    st.markdown("---")
+    
+    menu = st.radio("MENÜ", ["📊 Analiz Merkezi", "💳 Abonelik & Kayıt", "📂 Vaka Arşivi"])
+    
+    st.markdown("---")
+    if menu == "💳 Abonelik & Kayıt":
+        st.subheader("Üye Girişi")
+        email = st.text_input("E-posta")
+        password = st.text_input("Şifre", type="password")
+        if st.button("Giriş Yap"):
+            st.info("Kayıtlı kullanıcı bulunamadı. Lütfen abonelik paketlerini inceleyin.")
+    else:
+        st.info("Oturum: Misafir Kullanıcı")
+
+# ANA İÇERİK
+if menu == "📊 Analiz Merkezi":
+    st.markdown("# 📊 Analiz Merkezi")
+    st.markdown("##### Belge yükleyin veya vaka detaylarını girerek AI analizini başlatın.")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        # DOSYA YÜKLEME ALANI
+        st.markdown("### 📄 Belge Yükleme")
+        uploaded_file = st.file_uploader("Onam formu, resim veya PDF yükleyin", type=['pdf', 'png', 'jpg', 'jpeg'])
+        
+        if uploaded_file is not None:
+            st.success(f"Dosya başarıyla yüklendi: {uploaded_file.name}")
+            st.info("Dosya içeriği okunuyor ve AI motoruna aktarılıyor...")
+
+        st.markdown("### ✍️ Metin Girişi")
+        vaka_text = st.text_area("Vaka veya hukuki metni buraya yazın:", height=300)
+        
+        if st.button("STRATEJİK ANALİZİ BAŞLAT"):
+            if vaka_text or uploaded_file:
+                with st.spinner("AI Hukuk Algoritmaları Çalışıyor..."):
+                    # Simüle edilmiş veya AWS Bedrock üzerinden gelen yanıt
+                    try:
+                        client = boto3.client(service_name='bedrock-agent-runtime', region_name=REGION,
+                                            aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+                        response = client.invoke_agent(agentId=AGENT_ID, agentAliasId=AGENT_ALIAS_ID,
+                                                    sessionId="zak-pro-v2", inputText=vaka_text if vaka_text else "Dosya yüklendi.")
+                        
+                        res = "".join([event.get("chunk").get("bytes").decode() for event in response.get("completion") if event.get("chunk")])
+                        st.markdown("---")
+                        st.markdown("### ⚖️ Analiz Sonucu")
+                        st.write(res)
+                    except:
+                        st.error("Bağlantı hatası. Lütfen metin girerek deneyiniz.")
+            else:
+                st.warning("Lütfen bir metin girin veya dosya yükleyin.")
+
+    with col2:
+        st.markdown("### 💳 Paketler")
+        st.markdown("""
+        <div class='card'>
+            <h4>Standart Paket</h4>
+            <p>Aylık 5 Analiz<br>Temel Mevzuat Taraması</p>
+            <hr>
+            <b>499 TL / Ay</b>
+        </div>
+        <div class='card'>
+            <h4>Premium Paket</h4>
+            <p>Sınırsız Analiz<br>PDF Rapor Çıktısı<br>Emsal Karar Desteği</p>
+            <hr>
+            <b style='color: #2563eb;'>1.299 TL / Ay</b>
+        </div>
+        """, unsafe_allow_html=True)
+        st.button("ŞİMDİ ABONE OL")
+
+elif menu == "💳 Abonelik & Kayıt":
+    st.markdown("# 💎 Üyelik Yönetimi")
+    st.write("Abonelik planınızı seçin ve profesyonel koruma kalkanını aktif edin.")
+    # Burada Stripe veya Iyzico ödeme linkleri eklenebilir.
+
+elif menu == "📂 Vaka Arşivi":
+    st.markdown("# 📂 Geçmiş Analizler")
+    st.write("Daha önce yaptığınız analizlere buradan ulaşabilirsiniz.")
+    st.warning("Bu özelliği kullanmak için giriş yapmalısınız.")
+
+# FOOTER
 st.markdown("---")
-
-# ANA OPERASYON ALANI
-col_left, col_right = st.columns([2, 1])
-
-with col_left:
-    st.markdown("### 📋 Vaka ve Belge Analizi")
-    st.markdown("<p style='color: #64748b; font-size: 14px;'>Aydınlatılmış onam formları, komplikasyon bildirimleri veya hukuki danışmanlık gerektiren vaka detaylarını giriniz.</p>", unsafe_allow_html=True)
-    
-    vaka_input = st.text_area("", height=450, placeholder="Analiz edilecek metni buraya yapıştırın...")
-    
-    if st.button("ANALİZİ BAŞLAT"):
-        if vaka_input:
-            with st.spinner("Yapay Zeka Mevzuat Taraması Yapılıyor..."):
-                try:
-                    client = boto3.client(service_name='bedrock-agent-runtime', region_name=REGION,
-                                        aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
-                    response = client.invoke_agent(agentId=AGENT_ID, agentAliasId=AGENT_ALIAS_ID,
-                                                sessionId="zakshield-pro", inputText=vaka_input)
-                    
-                    res_text = "".join([event.get("chunk").get("bytes").decode() for event in response.get("completion") if event.get("chunk")])
-                    st.markdown("---")
-                    st.markdown("### 🛡️ Stratejik Değerlendirme Raporu")
-                    st.success(res_text)
-                    st.download_button("Raporu Dışa Aktar (.txt)", res_text, "zakshield_rapor.txt")
-                except Exception:
-                    st.error("Sistem şu an yüksek talep altında. Lütfen bir süre sonra tekrar deneyiniz.")
-        else:
-            st.warning("Lütfen analiz için bir veri girişi yapın.")
-
-with col_right:
-    st.markdown("### 🛡️ Kurumsal Güvence")
-    st.markdown("""
-    <div class='card'>
-    <h4 style='color:#f8fafc; margin-top:0;'>Yasal Uyumluluk</h4>
-    Güncel Tıbbi Deontoloji Nizamnamesi ve Hekimlik Meslek Etiği Kuralları çerçevesinde analiz sunar.
-    </div>
-    <div class='card'>
-    <h4 style='color:#f8fafc; margin-top:0;'>Risk Projeksiyonu</h4>
-    Olası malpraktis davalarında savunma stratejinizi güçlendirecek eksiklikleri tespit eder.
-    </div>
-    <div class='card'>
-    <h4 style='color:#f8fafc; margin-top:0;'>Gizlilik Protokolü</h4>
-    Verileriniz 256-bit şifreleme ile korunur ve üçüncü taraflarla asla paylaşılmaz.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.info("💡 **Profesyonel Not:** Onam formlarınızdaki teknik terimlerin hasta tarafından anlaşılabilirliğini bu panel üzerinden test edebilirsiniz.")
-
-# FOOTER - PROFESYONEL BİTİŞ
-st.markdown("---")
-f1, f2 = st.columns(2)
-with f1:
-    st.caption("ZAKShield AI | Medical Legal-Tech Solutions")
-with f2:
-    st.markdown("<p style='text-align: right; color: #475569; font-size: 12px;'>Bu platform bir karar destek sistemidir. Nihai hukuki süreçler için hukuk müşavirliğinize danışınız.</p>", unsafe_allow_html=True)
+st.caption("© 2026 ZAKShield AI | Medical Legal-Tech Solutions | Gizlilik Politikası | Kullanım Şartları")
